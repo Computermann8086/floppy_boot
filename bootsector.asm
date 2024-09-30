@@ -23,4 +23,7 @@ push ax                 ; Pushing AX again
 pop es                  ; And popping it into ES
 pop ds                  ; and DS and setting them both to zero
 sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
+jmp 0000:enforce_csip   ; Preforming a far jump to enforce CS:IP
+enforce_csip:
+
 
