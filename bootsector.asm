@@ -51,7 +51,14 @@ pop ds                  ; and DS and setting them both to zero
 sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
 
 
-
+read_sect:              ; IN: call to convert_LBA, DL = Drive to read
+    mov ah, 02h
+    xor bx, bx
+    mov es, bx
+    mov bx, buffer
+    int 13h
+    ret
+    
 
 convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 	push bx
@@ -74,8 +81,6 @@ convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 
 	pop ax
 	pop bx
-
-	mov dl, drvno
 
 	ret
 
