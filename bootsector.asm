@@ -29,7 +29,12 @@ sptrk dw 18             ; Sectors Per Track
 nhead dw 2              ; Number of heads
 hsect dd 0              ; Hidden Sectors
 tsect dd 0              ; Total Sectors
-drvno db 0
+drvno db 0              ; Drive Number
+flags db 0              ; Flags
+ebsig db 29h            ; Extended Boot Signature
+vsnum dd 12341234h      ; Volume Serial Number
+vlabl db 'NO NAME    '  ; Volume Label
+fstyp db 'FAT12   '     ; Filesystem Type
 
 
 start:
