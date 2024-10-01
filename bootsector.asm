@@ -20,7 +20,8 @@ BPB:
 bps  dw 512             ; Bytes Per Sector
 spc  db 2               ; Sectors Per Cluster
 rs   dw 0               ; Reserved Sectors
-
+nFAT db 2               ; Number of FAT's
+MRDIR dw 224
 
 start:
 jmp 0000:enforce_csip   ; Preforming a far jump to enforce CS:IP
