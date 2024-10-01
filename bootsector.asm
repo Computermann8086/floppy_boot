@@ -21,7 +21,15 @@ bps  dw 512             ; Bytes Per Sector
 spc  db 2               ; Sectors Per Cluster
 rs   dw 0               ; Reserved Sectors
 nFAT db 2               ; Number of FAT's
-MRDIR dw 224
+MRDIR dw 224            ; Max Root Directory Entries
+tSect dw ?              ; Total Sectors
+mdesc db 0f0h           ; Media Descriptor Byte
+spfat dw 7              ; Sectors Per FAT
+sptrk dw ?              ; Sectors Per Track
+nhead dw ?              ; Number of heads
+hsect dd ?              ; Hidden Sectors
+tsect dd ?              ; Total Sectors
+
 
 start:
 jmp 0000:enforce_csip   ; Preforming a far jump to enforce CS:IP
