@@ -16,6 +16,8 @@ bits 16                 ; 16-bit programing
 cpu 8086                ; And assembling for the iAPX 8086 processor
 jmp start
 nop
+;------------------------------
+; BIOS PARAMETER BLOCK
 BPB:
 bps  dw 512             ; Bytes Per Sector
 spc  db 2               ; Sectors Per Cluster
@@ -36,6 +38,8 @@ vsnum dd 12341234h      ; Volume Serial Number
 vlabl db 'NO NAME    '  ; Volume Label
 fstyp db 'FAT12   '     ; Filesystem Type
 
+;-----------------
+; Boot Loader
 
 start:
 jmp 0000:enforce_csip   ; Preforming a far jump to enforce CS:IP
@@ -49,6 +53,13 @@ push ax                 ; Pushing AX again
 pop es                  ; And popping it into ES
 pop ds                  ; and DS and setting them both to zero
 sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
+
+read_rootdir:
+    mov ax, 19
+    call convert_LBA
+    mov al, 
+
+
 
 
 read_sect:              ; IN: call to convert_LBA, DL = Drive to read
