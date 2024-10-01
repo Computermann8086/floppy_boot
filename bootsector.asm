@@ -22,13 +22,14 @@ spc  db 2               ; Sectors Per Cluster
 rs   dw 0               ; Reserved Sectors
 nFAT db 2               ; Number of FAT's
 MRDIR dw 224            ; Max Root Directory Entries
-tSect dw ?              ; Total Sectors
+tSect dw 2880           ; Total Sectors
 mdesc db 0f0h           ; Media Descriptor Byte
-spfat dw 7              ; Sectors Per FAT
-sptrk dw ?              ; Sectors Per Track
-nhead dw ?              ; Number of heads
-hsect dd ?              ; Hidden Sectors
-tsect dd ?              ; Total Sectors
+spfat dw 9              ; Sectors Per FAT
+sptrk dw 18             ; Sectors Per Track
+nhead dw 2              ; Number of heads
+hsect dd 0              ; Hidden Sectors
+tsect dd 0              ; Total Sectors
+drvno db 0
 
 
 start:
