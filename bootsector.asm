@@ -57,8 +57,12 @@ sti                     ; Set the interrupts flag back on, now every single inte
 read_rootdir:
     mov ax, 19
     call convert_LBA
-    mov al, 
-
+    mov al, 14
+    call read_sect
+check_root_dir:
+    mov di, buffer
+    mov si, filename
+    mov cx, 
 
 
 
@@ -99,4 +103,4 @@ convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 
 filename db 'AC-DOS  SYS'
 
-
+buffer:
