@@ -52,3 +52,35 @@ sti                     ; Set the interrupts flag back on, now every single inte
 
 
 
+
+convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
+	push bx
+	push ax
+
+	mov bx, ax			; Save logical sector
+
+	mov dx, 0			; First the sector
+	div word [sptrk]
+	add dl, 01h			; Physical sectors start at 1
+	mov cl, dl			; Sectors belong in CL for int 13h
+	mov ax, bx
+
+	mov dx, 0			; Now calculate the head
+	div word [sptrk]
+	mov dx, 0
+	div word [nhead]
+	mov dh, dl			; Head/side
+	mov ch, al			; Track
+
+	pop ax
+	pop bx
+
+	mov dl, drvno
+
+	ret
+
+
+
+filename db 'AC-DOS  SYS'
+
+
