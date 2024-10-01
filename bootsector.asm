@@ -59,12 +59,43 @@ read_rootdir:
     call convert_LBA
     mov al, 14
     call read_sect
+    mov cx, 224
 check_root_dir:
     mov di, buffer
     mov si, filename
-    mov cx, 
+    push cx
+    mov cx, 11
+    rep cmpsb
+    je found_file
+    pop cx
+    add di, 32
+    loop check_root_dir
+    
+    
+
+found_file:
+    pop cx
 
 
+;-----------------
+; Loader Subroutines
+
+
+print_string:
+    mov ah, 0eh
+.print_loop:
+    lodsb
+    cmp al, 0
+    je .done
+    int 10h
+    jmp short .print_loop
+.done:
+
+reboot:
+    xor ax, ax
+    int 16h
+    mov word [ds:472h], 1234h ; To simulate a ctrl+alt+del
+    jmp 0ffffh:0000h    ; Reset the system
 
 read_sect:              ; IN: call to convert_LBA, DL = Drive to read
     mov ah, 02h
@@ -73,7 +104,8 @@ read_sect:              ; IN: call to convert_LBA, DL = Drive to read
     mov bx, buffer
     int 13h
     ret
-    
+
+
 
 convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 	push bx
