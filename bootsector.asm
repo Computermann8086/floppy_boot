@@ -55,6 +55,7 @@ pop ds                  ; and DS and setting them both to zero
 sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
 
 read_rootdir:
+    mov drvno, dl
     mov ax, 19
     call convert_LBA
     mov al, 14
@@ -70,11 +71,20 @@ check_root_dir:
     pop cx
     add di, 32
     loop check_root_dir
-    
+
+no_kernel:
+    mov si, non_sys_disk
+    jmp print_string
     
 
 found_file:
     pop cx
+    mov si, di
+    mov al, [si+0bh]
+    test al, d8h          ; Bit-mask for bits 11011000
+    jnz no_kernel         ; The kernel is either invalid or not here
+    
+    
 
 
 ;-----------------
@@ -132,7 +142,7 @@ convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 	ret
 
 
-
+non_sys_disk db 'Non system disk or disk error!', 0
 filename db 'AC-DOS  SYS'
 
 buffer:
