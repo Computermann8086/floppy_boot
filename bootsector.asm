@@ -55,7 +55,7 @@ pop ds                  ; and DS and setting them both to zero
 sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
 
 read_rootdir:
-    mov drvno, dl
+    mov byte [drvno], dl
     mov ax, 19
     call convert_LBA
     mov al, 14
@@ -81,7 +81,7 @@ found_file:
     pop cx
     mov si, di
     mov al, [si+0bh]
-    test al, d8h          ; Bit-mask for bits 11011000
+    test al, 0d8h          ; Bit-mask for bits 11011000
     jnz no_kernel         ; The kernel is either invalid or not here
     xor ax, ax
     mov word ax, [si+1ah] ; AX = First cluster of kernel
