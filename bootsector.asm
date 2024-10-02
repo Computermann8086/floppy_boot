@@ -93,7 +93,28 @@ found_file:
 ;-----------------
 ; Loader Subroutines
 
-
+get_fat:
+    push bx
+    push cx
+    mov cx, ax
+    shl ax, 1
+    add ax, cx
+    test ax, 1
+    pushf
+    shr ax, 1
+    add bx, ax
+    mov ax, [bx]
+    popf
+    jnz .getfat1
+    and ax, 0fffh
+    jmp .getfat2
+.getfat1:
+    mov cl, 4
+    shr ax, cl
+.getfat2:
+    pop cx
+    pop bx
+    ret
 
 
 print_string:
