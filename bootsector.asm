@@ -83,12 +83,17 @@ found_file:
     mov al, [si+0bh]
     test al, d8h          ; Bit-mask for bits 11011000
     jnz no_kernel         ; The kernel is either invalid or not here
+    xor ax, ax
+    mov word ax, [si+1ah] ; AX = First cluster of kernel
+    
     
     
 
 
 ;-----------------
 ; Loader Subroutines
+
+
 
 
 print_string:
