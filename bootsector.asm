@@ -55,12 +55,12 @@ pop ds                  ; and DS and setting them both to zero
 sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
 
 read_rootdir:
-    mov byte [drvno], dl
-    mov ax, 19
-    call convert_LBA
-    mov al, 14
+    mov byte [drvno], dl  ; What drive to read from
+    mov ax, 19            ; Sector 19
+    call convert_LBA      ; Convert it to CHS
+    mov al, 14            ; Read 14 sectors
     call read_sect
-    mov cx, 224
+    mov cx, 224           ; Ammount of entreis in root directory
 check_root_dir:
     mov di, buffer
     mov si, filename
