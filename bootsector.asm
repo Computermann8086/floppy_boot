@@ -60,27 +60,27 @@ read_rootdir:
     call convert_LBA      ; Convert it to CHS
     mov al, 14            ; Read 14 sectors
     call read_sect
-    mov cx, 224           ; Ammount of entreis in root directory
+    mov cx, 224           ; Ammount of entries in root directory
 check_root_dir:
-    mov di, buffer
-    mov si, filename
-    push cx
-    mov cx, 11
-    rep cmpsb
-    je found_file
-    pop cx
-    add di, 32
-    loop check_root_dir
+    mov di, buffer        ; The root directory is stored here
+    mov si, filename      ; The name of our kernel here
+    push cx               ; Save CX, since it contains the counter, so we don't start reading garbage data
+    mov cx, 11            ; We need to read 11 bytes, cuz 8.3 filenames
+    rep cmpsb             ; Does it match?
+    je found_file         ; Yes it does!
+    pop cx                ; Nope, let's try again
+    add di, 32            ; Add 32 to get to the next dir entry
+    loop check_root_dir   ; Let's try again
 
 no_kernel:
-    mov si, non_sys_disk
+    mov si, non_sys_disk  ; No kernel, not good
     jmp print_string
     
 
 found_file:
-    pop cx
-    mov si, di
-    mov al, [si+0bh]
+    pop cx                ; Ok, we found the kernel, let's pop CX of the stack
+    mov si, di            ; SI=The die entry for our kernel
+    mov al, [si+0bh]      ; This is where the attributes are stored 
     test al, 0d8h          ; Bit-mask for bits 11011000
     jnz no_kernel         ; The kernel is either invalid or not here
     xor ax, ax
