@@ -81,10 +81,21 @@ found_file:
     pop cx                ; Ok, we found the kernel, let's pop CX of the stack
     mov si, di            ; SI=The die entry for our kernel
     mov al, [si+0bh]      ; This is where the attributes are stored 
-    test al, 0d8h          ; Bit-mask for bits 11011000
+    test al, 0d8h         ; Bit-mask for bits 11011000
     jnz no_kernel         ; The kernel is either invalid or not here
-    xor ax, ax
+    xor ax, ax            ; Zero out AX
     mov word ax, [si+1ah] ; AX = First cluster of kernel
+    mov word bx, [spc]    ; BX is the multiplier
+    mov bp, ax
+read_loop:
+    mul bx                ; AX *= 2
+    call convert_LBA      ; Convert it to LBA
+    call read_sect_k      ; Read the kernel sector
+    mov ax, bp
+    call get_fat
+    mov bp, ax
+    
+
     
     
     
@@ -142,6 +153,14 @@ read_sect:              ; IN: call to convert_LBA, DL = Drive to read
     ret
 
 
+read_sect_k:              ; IN: call to convert_LBA, DL = Drive to read
+    push bx
+    mov ah, 02h
+    mov bx, 2000h
+    mov es, bx
+    pop bx
+    int 13h
+    ret
 
 convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 	push bx
@@ -170,5 +189,12 @@ convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 
 non_sys_disk db 'Non system disk or disk error!', 0
 filename db 'AC-DOS  SYS'
+
+
+
+
+times 510 - ($-$$) db 00h
+
+db 055h, 0AAh     ; Boot signature, MUST NOT BE ALTERED
 
 buffer:
