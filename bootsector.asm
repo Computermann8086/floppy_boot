@@ -168,7 +168,6 @@ read_sect:              ; IN: call to convert_LBA, DL = Drive to read
     int 13h
     ret
 
-
 read_sect_k:              ; IN: call to convert_LBA, DL = Drive to read
     push bx
     mov ah, 02h
@@ -181,31 +180,24 @@ read_sect_k:              ; IN: call to convert_LBA, DL = Drive to read
 convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 	push bx
 	push ax
-
 	mov bx, ax			; Save logical sector
-
 	mov dx, 0			; First the sector
 	div word [sptrk]
 	add dl, 01h			; Physical sectors start at 1
 	mov cl, dl			; Sectors belong in CL for int 13h
 	mov ax, bx
-
 	mov dx, 0			; Now calculate the head
 	div word [sptrk]
 	mov dx, 0
 	div word [nhead]
 	mov dh, dl			; Head/side
 	mov ch, al			; Track
-
 	pop ax
 	pop bx
-
 	ret
-
 
 non_sys_disk db 'Non system disk or disk error!', 0
 filename db 'AC-DOS  SYS'
-
 
 times 510 - ($-$$) db 00h
 
