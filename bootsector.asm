@@ -197,7 +197,7 @@ convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 	ret
 
 non_sys_disk db 'Non system disk or disk error!', 0
-filename db 'AC-DOS  SYS'
+filename db 'KERNEL  BIN'
 
 times 510 - ($-$$) db 00h
 
