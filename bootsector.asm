@@ -61,8 +61,8 @@ read_rootdir:
     mov al, 14            ; Read 14 sectors
     call read_sect
     mov cx, 224           ; Ammount of entries in root directory
-check_root_dir:
     mov di, buffer        ; The root directory is stored here
+check_root_dir:
     mov si, filename      ; The name of our kernel here
     push cx               ; Save CX, since it contains the counter, so we don't start reading garbage data
     mov cx, 11            ; We need to read 11 bytes, cuz 8.3 filenames
