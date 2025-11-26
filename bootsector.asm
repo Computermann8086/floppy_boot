@@ -14,7 +14,7 @@
 org 7c00h               ; Program origin of 7c00h
 bits 16                 ; 16-bit programing
 cpu 8086                ; And assembling for the iAPX 8086 processor
-jmp start
+jmp short start
 nop
 ;------------------------------
 ; BIOS PARAMETER BLOCK
@@ -67,14 +67,14 @@ check_root_dir:
     push cx               ; Save CX, since it contains the counter, so we don't start reading garbage data
     mov cx, 11            ; We need to read 11 bytes, cuz 8.3 filenames
     rep cmpsb             ; Does it match?
-    je found_file         ; Yes it does!
+    je short found_file   ; Yes it does!
     pop cx                ; Nope, let's try again
     add di, 32            ; Add 32 to get to the next dir entry
     loop check_root_dir   ; Let's try again
 
 no_kernel:
     mov si, non_sys_disk  ; No kernel, not good
-    jmp print_string
+    jmp short print_string
     
 
 found_file:
@@ -82,7 +82,7 @@ found_file:
     mov si, di            ; SI=The die entry for our kernel
     mov al, [si+0bh]      ; This is where the attributes are stored 
     test al, 0d8h         ; Bit-mask for bits 11011000
-    jnz no_kernel         ; The kernel is either invalid or not here
+    jnz short no_kernel   ; The kernel is either invalid or not here
     xor ax, ax            ; Zero out AX
     mov word ax, [si+1ah] ; AX = First cluster of kernel
     mov word bx, [spc]    ; BX is the multiplier
@@ -132,9 +132,9 @@ get_fat:
     add bx, ax
     mov ax, [bx]
     popf
-    jnz .getfat1
+    jnz short .getfat1
     and ax, 0fffh
-    jmp .getfat2
+    jmp short .getfat2
 .getfat1:
     mov cl, 4
     shr ax, cl
