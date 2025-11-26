@@ -47,7 +47,7 @@ enforce_csip:             ; Now that CS:IP is enforced
     cli                   ; Clear the interrupt flag, only non-maskable interrupts will be enabled
     xor ax, ax            ; Zero out accumulator
     mov ss, ax            ; Set the stack segment register
-    mov sp, 7c00h         ; and the Stack Pointer
+    mov sp, 7bffh         ; and the Stack Pointer
     push ax               ; Pushing AX 
     push ax               ; Pushing AX again
     pop es                ; And popping it into ES
