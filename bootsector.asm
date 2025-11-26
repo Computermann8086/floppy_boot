@@ -42,17 +42,17 @@ fstyp db 'FAT12   '     ; Filesystem Type
 ; Boot Loader
 
 start:
-jmp 0000:enforce_csip   ; Preforming a far jump to enforce CS:IP
-enforce_csip:           ; Now that CS:IP is enforced
-cli                     ; Clear the interrupt flag, only non-maskable interrupts will be enabled
-xor ax, ax              ; Zero out accumulator
-mov ss, ax              ; Set the stack segment register
-mov sp, 7c00h           ; and the Stack Pointer
-push ax                 ; Pushing AX 
-push ax                 ; Pushing AX again
-pop es                  ; And popping it into ES
-pop ds                  ; and DS and setting them both to zero
-sti                     ; Set the interrupts flag back on, now every single interrupt can interrupt my work
+    jmp 0000:enforce_csip ; Preforming a far jump to enforce CS:IP
+enforce_csip:             ; Now that CS:IP is enforced
+    cli                   ; Clear the interrupt flag, only non-maskable interrupts will be enabled
+    xor ax, ax            ; Zero out accumulator
+    mov ss, ax            ; Set the stack segment register
+    mov sp, 7c00h         ; and the Stack Pointer
+    push ax               ; Pushing AX 
+    push ax               ; Pushing AX again
+    pop es                ; And popping it into ES
+    pop ds                ; and DS and setting them both to zero
+    sti                   ; Set the interrupts flag back on, now every single interrupt can interrupt my work
 
 read_rootdir:
     mov byte [drvno], dl  ; What drive to read from
@@ -78,6 +78,8 @@ no_kernel:
     
 
 found_file:
+
+    
     pop cx                ; Ok, we found the kernel, let's pop CX of the stack
     mov si, di            ; SI=The die entry for our kernel
     mov al, [si+0bh]      ; This is where the attributes are stored 
@@ -85,37 +87,42 @@ found_file:
     jnz short no_kernel   ; The kernel is either invalid or not here
     xor ax, ax            ; Zero out AX
     mov word ax, [si+1ah] ; AX = First cluster of kernel
-    mov word bx, [spc]    ; BX is the multiplier
-    mov bp, ax
-    mov bx, 2000h
-    mov es, bx
-    xor bx, bx
-    jmp short $+4
+    mov bp, ax            ; Save AX, since it contains the kernel Cluster
+    mov ax, 1             ; FAT starts at LBA 1
+    call convert_LBA      ; Convert it to CHS
+    mov al, [spfat]       ; Read all the FAT sectors
+    call read_sect        ; READ IT
+    mov ax, bp            ; Restore AX
+    mov bx, 2000h         ; Segment where to load the kernel
+    mov es, bx            ; Move segment value 
+    xor bx, bx            ; Zero out bx
+    jmp short $+4         ; Skip the first increase of bx
 read_loop:
-    add bx, 1024
+    add bx, 1024          ; Add to sectors worth to the adress
     mul [spc]             ; AX *= 2
     call convert_LBA      ; Convert it to LBA
     call read_sect_k      ; Read the kernel sector
-    mov ax, bp
-    call get_fat
-    mov bp, ax
-    cmp ax, 0FF8h
-    jl short read_loop
+    mov ax, bp            ; Save AX = previous cluster
+    push bx
+    mov bx, buffer
+    call get_fat          ; Get the next FAT field
+    pop bx
+    mov bp, ax            ; Save AX again
+    cmp ax, 0FF8h         ; Now is this the end of the file??
+    jl short read_loop    ; Nope, keep reading
     
-jump_to_kernel:
-    xor ax, ax
-    mov es, ax
-    mov ds, ax
-    xor ax, ax
-    xor bx, bx
-    xor cx, cx
-    xor dx, dx
-    xor si, si
-    xor di, di
-    mov dl, [drvno]
-    jmp far 2000h:0000h
-    
-
+jump_to_kernel:           ; Yes indeed, it is the end
+    mov ax, 2000h         ; Lets set the main segments to 2000h
+    mov es, ax            ; ES
+    mov ds, ax            ; Then DS
+    xor ax, ax            ; Then lets clear out the registers, starting with AX
+    xor bx, bx            ; Then BX
+    xor cx, cx            ; Then CX
+    xor dx, dx            ; Then DX
+    xor si, si            ; Then SI
+    xor di, di            ; Then finally DI
+    mov dl, [drvno]       ; Set DL to the drivenumber, to pass it to the OS
+    jmp far 2000h:0000h   ; Jump to 2000h:0000h, the start of our kernel  
 
 ;-----------------
 ; Loader Subroutines
@@ -145,23 +152,23 @@ get_fat:
 
 
 print_string:
-    mov ah, 0eh
+    mov ah, 0eh              ; Teletype output
 .print_loop:
-    lodsb
-    cmp al, 0
-    je .done
-    int 10h
-    jmp short .print_loop
+    lodsb                    ; AL = ES:SI
+    cmp al, 0                ; Is it zero? If not then keep reading the string
+    je .done                 ; Yes it is zero, we're done here
+    int 10h                  ; Nope we're not done here, keep printin
+    jmp short .print_loop    ; Jump back
 .done:
 
-reboot:
-    xor ax, ax
-    int 16h
+reboot:                       ; Reboot procedure
+    xor ax, ax                ; Zero out AX
+    int 16h                   ; Wait for keypress
     mov word [ds:472h], 1234h ; To simulate a ctrl+alt+del
-    jmp 0ffffh:0000h    ; Reset the system
+    jmp 0ffffh:0000h          ; Reset the system
 
 read_sect:              ; IN: call to convert_LBA, DL = Drive to read
-    mov ah, 02h
+    mov ah, 02h         ; 
     xor bx, bx
     mov es, bx
     mov bx, buffer
@@ -177,7 +184,7 @@ read_sect_k:              ; IN: call to convert_LBA, DL = Drive to read
     int 13h
     ret
 
-convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
+convert_LBA:            ; Converts LBA to CHS tuple ready for int 13h call
 	push bx
 	push ax
 	mov bx, ax			; Save logical sector
