@@ -19,6 +19,7 @@ nop
 ;------------------------------
 ; BIOS PARAMETER BLOCK
 BPB:
+OEMID db 'ACDOS100'
 bps  dw 512             ; Bytes Per Sector
 spc  db 2               ; Sectors Per Cluster
 rs   dw 0               ; Reserved Sectors
@@ -47,7 +48,7 @@ enforce_csip:             ; Now that CS:IP is enforced
     cli                   ; Clear the interrupt flag, only non-maskable interrupts will be enabled
     xor ax, ax            ; Zero out accumulator
     mov ss, ax            ; Set the stack segment register
-    mov sp, 7bffh         ; and the Stack Pointer
+    mov sp, 6000h         ; and the Stack Pointer
     push ax               ; Pushing AX 
     push ax               ; Pushing AX again
     pop es                ; And popping it into ES
@@ -56,34 +57,35 @@ enforce_csip:             ; Now that CS:IP is enforced
 
 read_rootdir:
     mov byte [drvno], dl  ; What drive to read from
-    mov ax, 19            ; Sector 19
+    mov ax, 13            ; Sector 19
     call convert_LBA      ; Convert it to CHS
     mov al, 14            ; Read 14 sectors
     call read_sect
     mov cx, 224           ; Ammount of entries in root directory
     mov di, buffer        ; The root directory is stored here
-check_root_dir:
-    mov si, filename      ; The name of our kernel here
-    push cx               ; Save CX, since it contains the counter, so we don't start reading garbage data
-    mov cx, 11            ; We need to read 11 bytes, cuz 8.3 filenames
-    rep cmpsb             ; Does it match?
-    je short found_file   ; Yes it does!
-    pop cx                ; Nope, let's try again
-    add di, 32            ; Add 32 to get to the next dir entry
-    loop check_root_dir   ; Let's try again
 
+check_root_dir:
+    mov si, filename        ; The name of our kernel here
+    push cx                 ; Save root-entry counter
+    push di                 ; Save DI (start of this dir entry)
+    mov cx, 11              ; Compare 11 bytes (8.3)
+    repe cmpsb              ; Compare while equal, stop on mismatch
+    pop di                  ; Restore DI to start of entry
+    pop cx                  ; Restore root-entry counter
+    je short found_file     ; If fully matched, found the file
+    add di, 32              ; Move to next 32-byte directory entry
+    loop check_root_dir
 no_kernel:
     mov si, non_sys_disk  ; No kernel, not good
-    jmp short print_string
-    
+    jmp print_string
+
 
 found_file:
 
-    
     pop cx                ; Ok, we found the kernel, let's pop CX of the stack
     mov si, di            ; SI=The die entry for our kernel
     mov al, [si+0bh]      ; This is where the attributes are stored 
-    test al, 0d8h         ; Bit-mask for bits 11011000
+    test al, 00011000b         ; Bit-mask for bits 11011000
     jnz short no_kernel   ; The kernel is either invalid or not here
     xor ax, ax            ; Zero out AX
     mov word ax, [si+1ah] ; AX = First cluster of kernel
@@ -99,7 +101,7 @@ found_file:
     jmp short $+4         ; Skip the first increase of bx
 read_loop:
     add bx, 1024          ; Add to sectors worth to the adress
-    mul [spc]             ; AX *= 2
+    mul byte [spc]        ; AX *= 2
     call convert_LBA      ; Convert it to LBA
     mov al, 2             ; Read two sectors
     call read_sect_k      ; Read the kernel sector
@@ -123,7 +125,9 @@ jump_to_kernel:           ; Yes indeed, it is the end
     xor si, si            ; Then SI
     xor di, di            ; Then finally DI
     mov dl, [drvno]       ; Set DL to the drivenumber, to pass it to the OS
-    jmp far 2000h:0000h   ; Jump to 2000h:0000h, the start of our kernel  
+    push es
+    push ax
+    retf
 
 ;-----------------
 ; Loader Subroutines
@@ -204,8 +208,8 @@ convert_LBA:            ; Converts LBA to CHS tuple ready for int 13h call
 	pop bx
 	ret
 
-non_sys_disk db 'Non system disk or disk error!', 0
 filename db 'KERNEL  BIN'
+non_sys_disk db 'Non system disk or disk error!', 0
 
 times 510 - ($-$$) db 00h
 
