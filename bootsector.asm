@@ -101,6 +101,7 @@ read_loop:
     add bx, 1024          ; Add to sectors worth to the adress
     mul [spc]             ; AX *= 2
     call convert_LBA      ; Convert it to LBA
+    mov al, 2             ; Read two sectors
     call read_sect_k      ; Read the kernel sector
     mov ax, bp            ; Save AX = previous cluster
     push bx
