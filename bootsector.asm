@@ -1,10 +1,10 @@
 ;----------------------------------;
 ;        Floppy Boot Record        ;
 ;  Written by Christian Henrichsen ;
-;            30.09.2024            ;
+;            26.11.2025            ;
 ;           Copyright (C)          ;
 ;       Christian Henrichsen       ;
-;               2024               ;
+;               2025               ;
 ;                                  ;
 ;     Copyright Notice Must be     ;
 ; Included with All Copies of This ;
@@ -87,17 +87,33 @@ found_file:
     mov word ax, [si+1ah] ; AX = First cluster of kernel
     mov word bx, [spc]    ; BX is the multiplier
     mov bp, ax
+    mov bx, 2000h
+    mov es, bx
+    xor bx, bx
+    jmp short $+4
 read_loop:
-    mul bx                ; AX *= 2
+    add bx, 1024
+    mul [spc]             ; AX *= 2
     call convert_LBA      ; Convert it to LBA
     call read_sect_k      ; Read the kernel sector
     mov ax, bp
     call get_fat
     mov bp, ax
+    cmp ax, 0FF8h
+    jl short read_loop
     
-
-    
-    
+jump_to_kernel:
+    xor ax, ax
+    mov es, ax
+    mov ds, ax
+    xor ax, ax
+    xor bx, bx
+    xor cx, cx
+    xor dx, dx
+    xor si, si
+    xor di, di
+    mov dl, [drvno]
+    jmp far 2000h:0000h
     
 
 
@@ -189,8 +205,6 @@ convert_LBA:           ; Converts LBA to CHS tuple ready for int 13h call
 
 non_sys_disk db 'Non system disk or disk error!', 0
 filename db 'AC-DOS  SYS'
-
-
 
 
 times 510 - ($-$$) db 00h
