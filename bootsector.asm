@@ -57,7 +57,7 @@ enforce_csip:             ; Now that CS:IP is enforced
 
 read_rootdir:
     mov byte [drvno], dl  ; What drive to read from
-    mov ax, 13            ; Sector 19
+    mov ax, 19            ; Sector 19
     call convert_LBA      ; Convert it to CHS
     mov al, 14            ; Read 14 sectors
     call read_sect
